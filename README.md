@@ -20,3 +20,15 @@ source venv/Scripts/activate
 ```bahs
 python manage.py runserver
 ```
+8. 앱 생성
+```bash
+django-admin startapp <app-name>
+```
+9. 앱 등록 ('setting.py')
+```python
+INSTALLED_APPS = [
+    ...
+    <app_name>
+]
+```
+1-. 'url.py' -> 
