@@ -16,8 +16,12 @@ python -m venv venv
 source venv/Scripts/activate
 ```
 6. 가상환경에 django 설치
+```bash
+pip install django
+```
+
 7. 서버 실행 확인
-```bahs
+```bash
 python manage.py runserver
 ```
 8. 앱 생성
@@ -31,4 +35,120 @@ INSTALLED_APPS = [
     <app_name>
 ]
 ```
-1-. 'url.py' -> 
+10. 'url.py' -> 'views,py' -> 'templates/*.html'
+
+
+# Model
+
+1. 모델 정의 ('model.py')
+    - 모델의 이름은 기본적으로 단수 형태
+```python
+from django.db import models
+
+class Post(models.Model):
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+```
+
+2. 번역본 생성
+```bash
+python manage.py makemigrations
+```
+
+3. DB에 반영
+```bash
+python manage.py migrate
+```
+
+4. SQL 스키마 확인
+```bash
+python manage.py sqlmigrate posts 0001
+```
+
+5. 생성한 모델 admin에 등록
+```python
+from django.contrib import admin
+from .models import Post
+admin.site.register(Post)
+```
+
+6. 관리자 계정 생성
+```bash
+python manage.py createsuperuser
+```
+
+
+# CRUD 로직 작성
+
+### 1. Read
+- 전체 게시물 출력
+ ```python
+ def index(request):
+    posts = Post.objects.all() # 번역 -> SQL -> DB -> posts
+    context = {
+        'posts': posts,
+    }
+    return render(request, 'index.html', context)
+ ```
+    
+-하나의 게시물 출력
+```python
+def detail(request, id):
+    post = Post.objects.get(id=id)
+    context = {
+        'post': post,
+    }
+    return render(request, 'detail.html', context)
+```
+
+### 2. Create
+- 사용자에게 입력할 수 있는 폼을 제공
+```python
+def new(request):
+    return render(request, 'new.html')
+```
+
+- 입력한 데이터로 
+```python
+def create(request):
+    title = request.GET.get('title')
+    content = request.GET.get('content')
+    post = Post()
+    post.title = title
+    post.content = content
+    post.save()
+    return redirect(f'/posts/{post.id}/')
+```
+
+### 3. Delete
+```python
+def delete(request, id):
+    post = Post.objects.get(id=id)
+    post.delete()
+    return redirect('/index/')
+```
+### 4. Update
+ - 기존 정보를 담을 form 제공
+```python
+def edit(request, id):
+    post = Post.objects.get(id=id)
+    context = {
+        'post': post,
+    }
+    return render(request, 'edit.html', context)
+```
+
+ - 사용자가 입력한 새로운 정보를 가져와서 덮어씌움
+ ```python
+ def update(request, id):
+    # 방금 수정한 데이터
+    title = request.GET.get('title')
+    content = request.GET.get('content')
+    # 기존 데이터
+    post = Post.objects.get(id=id)
+    post.title = title
+    post.content = content
+    post.save()
+    
+    return redirect('/posts/{post.id}/')
+ ```
